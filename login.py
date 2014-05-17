@@ -25,7 +25,7 @@ def read_keys():
     APP_SECRET = re.findall(ur'(?im)^APP_SECRET\s*=\s*([^\n]+?)\s*$', w)[0].strip()
     return APP_KEY, APP_SECRET
 
-def write_tokens():
+def write_tokens(final_step):
     OAUTH_TOKEN = final_step['oauth_token']
     OAUTH_TOKEN_SECRET = final_step['oauth_token_secret']
     
