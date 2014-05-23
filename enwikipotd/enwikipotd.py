@@ -24,14 +24,14 @@ import urllib
 from twython import Twython
 
 def read_keys():
-    f = open('.twitter_keys', 'r')
+    f = open('%s/.twitter_keys' % (os.path.dirname(os.path.realpath(__file__))), 'r')
     w = f.read()
     APP_KEY = re.findall(ur'(?im)^APP_KEY\s*=\s*([^\n]+?)\s*$', w)[0].strip()
     APP_SECRET = re.findall(ur'(?im)^APP_SECRET\s*=\s*([^\n]+?)\s*$', w)[0].strip()
     return APP_KEY, APP_SECRET
 
 def read_tokens():
-    f = open('.twitter_tokens', 'r')
+    f = open('%s/.twitter_tokens' % (os.path.dirname(os.path.realpath(__file__))), 'r')
     w = f.read()
     OAUTH_TOKEN = re.findall(ur'(?im)^OAUTH_TOKEN\s*=\s*([^\n]+?)\s*$', w)[0].strip()
     OAUTH_TOKEN_SECRET = re.findall(ur'(?im)^OAUTH_TOKEN_SECRET\s*=\s*([^\n]+?)\s*$', w)[0].strip()
@@ -43,19 +43,21 @@ def main():
 
     twitter = Twython(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
 
-    if os.path.exists('thumb.jpg'):
-        os.remove('thumb.jpg')
-    elif os.path.exists('thumb.png'):
-        os.remove('thumb.png')
+    if os.path.exists('%s/thumb.jpg' % (os.path.dirname(os.path.realpath(__file__)))):
+        os.remove('%s/thumb.jpg' % (os.path.dirname(os.path.realpath(__file__))))
+    elif os.path.exists('%s/thumb.png' % (os.path.dirname(os.path.realpath(__file__)))):
+        os.remove('%s/thumb.png' % (os.path.dirname(os.path.realpath(__file__))))
 
     urltemplate = 'https://en.wikipedia.org/wiki/Template:POTD/%s?action=raw' % (datetime.datetime.now().strftime('%Y-%m-%d'))
     raw = unicode(urllib.urlopen(urltemplate).read(), 'utf-8')
     imagename = re.findall(ur'(?im)\|\s*image\s*=\s*([^\n\|]+?)[\n\|]', raw)[0].strip()
     imagename_ = re.sub(ur' ', ur'_', imagename)
     texttitle = re.findall(ur'(?im)\|\s*texttitle\s*=\s*([^\n\|]+?)[\n\|]', raw)[0].strip()
+    if len(texttitle) > 80:
+        texttitle = '%s...' % (texttitle[:80])
     md5 = hashlib.md5(imagename_.encode('utf-8')).hexdigest()
     thumburl='https://upload.wikimedia.org/wikipedia/commons/thumb/%s/%s/%s/800px-%s' % (md5[0], md5[:2], imagename_, imagename_)
-    thumbfilename = 'thumb'
+    thumbfilename = '%s/thumb' % (os.path.dirname(os.path.realpath(__file__)))
     if imagename.endswith('.svg'):
         thumburl += '.png'
         thumbfilename += '.png'
