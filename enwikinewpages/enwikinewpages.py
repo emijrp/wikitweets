@@ -79,10 +79,11 @@ def main():
     jsonnewpages = json.loads(unicode(urllib.urlopen(urlnewpages).read(), 'utf-8'))
     print len(jsonnewpages['query']['recentchanges'])
     newpages_candidates = []
-    minlength = 1000
+    minlength = 2000
+    minuserexperience = 500 # in number of edits
     for page in jsonnewpages['query']['recentchanges']:
         #exclude newbies, tiny pages, etc
-        if page['newlen'] < minlength or getUserEditCount(page['user']) < 200:
+        if page['newlen'] < minlength or getUserEditCount(page['user']) < minuserexperience:
             continue
         
         page_title_ = re.sub(ur' ', ur'_', page['title'])
