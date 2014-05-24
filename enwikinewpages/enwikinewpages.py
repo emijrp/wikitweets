@@ -55,6 +55,12 @@ def imageIsOnCommons(image=''):
     jsonimage = json.loads(unicode(urllib.urlopen(urlimage).read(), 'utf-8'))
     return jsonimage['query']['pages'][jsonimage['query']['pages'].keys()[0]]['imagerepository'] == 'shared' and True or False
 
+def getImageSize(image=''):
+    image_ = re.sub(ur' ', ur'_', image)
+    urlimage = 'http://en.wikipedia.org/w/api.php?action=query&titles=File:%s&prop=imageinfo&iiprop=size&format=json' % (image_.encode('utf-8'))
+    jsonimage = json.loads(unicode(urllib.urlopen(urlimage).read(), 'utf-8'))
+    return jsonimage['query']['pages'][jsonimage['query']['pages'].keys()[0]]['imageinfo'][0]
+
 def main():
     APP_KEY, APP_SECRET = read_keys()
     OAUTH_TOKEN, OAUTH_TOKEN_SECRET = read_tokens()
@@ -73,7 +79,8 @@ def main():
     f.close()
     
     #get new pages
-    rcend = (datetime.datetime.now() - datetime.timedelta(hours=1)).strftime('%Y%m%d%H%M%S')
+    lastXhours = 1
+    rcend = (datetime.datetime.now() - datetime.timedelta(hours=lastXhours)).strftime('%Y%m%d%H%M%S')
     print rcend
     urlnewpages = 'http://en.wikipedia.org/w/api.php?action=query&list=recentchanges&rctype=new&rcnamespace=0&rcshow=!redirect|!anon&rcprop=title|user|timestamp|sizes&rcend=%s&rclimit=500&format=json' % (rcend)
     jsonnewpages = json.loads(unicode(urllib.urlopen(urlnewpages).read(), 'utf-8'))
@@ -115,12 +122,16 @@ def main():
         if not image_candidate:
             continue
         
-        newpages_candidates.append([page['title'], image_candidate])
+        image_size = getImageSize(image_candidate)
+        thumbsize = 800 #prefered size
+        if image_size['width'] <= thumbsize: #but if image is smaller, we change it
+            thumbsize = image_size['width'] - 1
+        newpages_candidates.append([page['title'], len(page_text), image_candidate, thumbwidth])
     
     print newpages_candidates
     c = 0
     maxtweets = 3
-    for page_title, image_title in newpages_candidates:
+    for page_title, page_size, image_title, thumbwidth in newpages_candidates:
         if c >= maxtweets:
             break
         if page_title in tweetedbefore:
@@ -128,10 +139,10 @@ def main():
             continue
         page_title_ = re.sub(ur' ', ur'_', page_title)
         image_title_ = re.sub(ur' ', ur'_', image_title)
-        if len(page_title) > 60:
-            page_title = '%s...' % (page_title[:60])
+        if len(page_title) > 50:
+            page_title = '%s...' % (page_title[:50])
         md5 = hashlib.md5(image_title_.encode('utf-8')).hexdigest()
-        thumburl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/%s/%s/%s/800px-%s' % (md5[0], md5[:2], urllib.quote(image_title_.encode('utf-8')), urllib.quote(image_title_.encode('utf-8')))
+        thumburl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/%s/%s/%s/%spx-%s' % (md5[0], md5[:2], urllib.quote(image_title_.encode('utf-8')), thumbwidth, urllib.quote(image_title_.encode('utf-8')))
         thumbfilename = '%s/thumb' % (os.path.dirname(os.path.realpath(__file__)))
         if image_title.endswith('.svg'):
             thumburl += '.png'
@@ -145,7 +156,7 @@ def main():
         print u'Tweeting [[%s]]' % (page_title)
         thumb = open(thumbfilename, 'rb')
         url = 'https://en.wikipedia.org/wiki/%s' % (page_title_)
-        twitter.update_status_with_media(status='%s %s #wikipedia #newpages' % (page_title, url), media=thumb)
+        twitter.update_status_with_media(status='%s %s (%s bytes) #wikipedia #newpages' % (page_title, url, page_size), media=thumb)
         g = open('%s/enwikinewpages.tweeted' % (os.path.dirname(os.path.realpath(__file__))), 'a')
         output = '%s\n' % (page_title)
         g.write(output.encode('utf-8'))
