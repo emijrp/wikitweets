@@ -56,7 +56,7 @@ def main():
     if len(texttitle) > 80:
         texttitle = '%s...' % (texttitle[:80])
     md5 = hashlib.md5(imagename_.encode('utf-8')).hexdigest()
-    thumburl='https://upload.wikimedia.org/wikipedia/commons/thumb/%s/%s/%s/800px-%s' % (md5[0], md5[:2], imagename_, imagename_)
+    thumburl='https://upload.wikimedia.org/wikipedia/commons/thumb/%s/%s/%s/800px-%s' % (md5[0], md5[:2], urllib.quote(imagename_.encode('utf-8')), urllib.quote(imagename_.encode('utf-8')))
     thumbfilename = '%s/thumb' % (os.path.dirname(os.path.realpath(__file__)))
     if imagename.endswith('.svg'):
         thumburl += '.png'
