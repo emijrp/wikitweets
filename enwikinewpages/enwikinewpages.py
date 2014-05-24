@@ -102,7 +102,7 @@ def main():
         
         #print page_title_
         #we prefer articles with images, and on Commons (they are free)
-        images = re.findall(ur"(?im)(?:\|\s*image\s*\=|\[\[\s*File\s*\:)\s*([^\n\[\]\|\=]+?\.(?:jpe?g|png|svg))", page_text)
+        images = re.findall(ur"(?im)(?:\|\s*image\s*\=|\[\[\s*(?:File|Image)\s*\:)\s*([^\n\[\]\|\=]+?\.(?:jpe?g|png|svg))", page_text)
         if not images:
             continue
         image_candidate = ''
