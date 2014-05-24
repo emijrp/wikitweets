@@ -13,4 +13,4 @@ Follow these steps:
 5. Now use the login.py script to get the tokens: python login.py. That will use .twitter_keys and show a link that you have to open in web browser. A code number will be displayed which you have to write in console, answering the question.
 6. Two tokens will saved in a file named .twitter_tokens.
 
-Now you can run your Twitter bot. The bot will need both .twitter_keys and .twitter_tokens files. If you want more than one Twitter bot, you will need to repeat these steps and generates other keys and tokens. Remember to protect these files to avoid others read them.
+Now you can run your Twitter bot. The bot will need both .twitter_keys and .twitter_tokens files. If you want more than one Twitter bot, you will need to repeat these steps and generates other keys and tokens. Remember to protect these files to avoid others read them (chmod go-rwx .twitter_*).
