@@ -1,3 +1,5 @@
 #!/bin/bash
 
-/bin/bash /data/project/wikitweets/enwikipotd/enwikipotd2.sh
+source /data/project/wikitweets/tweetsenv/bin/activate
+python /data/project/wikitweets/enwikipotd/enwikipotd.py
+deactivate
