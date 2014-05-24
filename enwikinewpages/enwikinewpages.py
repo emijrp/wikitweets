@@ -107,6 +107,10 @@ def main():
         if not re.search(ur"(?im)(<ref>|<ref name=)", page_text):
             continue
         
+        #we prefer articles with categories
+        if not re.search(ur"(?im)\[\[\s*Category\s*:", page_text):
+            continue
+        
         #print page_title_
         #we prefer articles with images, and on Commons (they are free)
         images = re.findall(ur"(?im)(?:\|\s*image\s*\=|\[\[\s*(?:File|Image)\s*\:)\s*([^\n\[\]\|\=]+?\.(?:jpe?g|png|svg))", page_text)
@@ -158,7 +162,7 @@ def main():
         url = 'https://en.wikipedia.org/wiki/%s' % (page_title_)
         twitter.update_status_with_media(status='%s %s (%s bytes) #wikipedia #newpages' % (page_title, url, page_size), media=thumb)
         g = open('%s/enwikinewpages.tweeted' % (os.path.dirname(os.path.realpath(__file__))), 'a')
-        output = '%s\n' % (page_title)
+        output = u'%s\n' % (page_title)
         g.write(output.encode('utf-8'))
         g.close()
         time.sleep(20)
