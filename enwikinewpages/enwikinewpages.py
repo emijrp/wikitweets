@@ -123,15 +123,15 @@ def main():
             continue
         
         image_size = getImageSize(image_candidate)
-        thumbsize = 800 #prefered size
-        if image_size['width'] <= thumbsize: #but if image is smaller, we change it
-            thumbsize = image_size['width'] - 1
-        newpages_candidates.append([page['title'], len(page_text), image_candidate, thumbwidth])
+        thumb_width = 800 #prefered size
+        if image_size['width'] <= thumb_width: #but if image is smaller, we change it
+            thumb_width = image_size['width'] - 1
+        newpages_candidates.append([page['title'], len(page_text), image_candidate, thumb_width])
     
     print newpages_candidates
     c = 0
     maxtweets = 3
-    for page_title, page_size, image_title, thumbwidth in newpages_candidates:
+    for page_title, page_size, image_title, thumb_width in newpages_candidates:
         if c >= maxtweets:
             break
         if page_title in tweetedbefore:
@@ -142,7 +142,7 @@ def main():
         if len(page_title) > 50:
             page_title = '%s...' % (page_title[:50])
         md5 = hashlib.md5(image_title_.encode('utf-8')).hexdigest()
-        thumburl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/%s/%s/%s/%spx-%s' % (md5[0], md5[:2], urllib.quote(image_title_.encode('utf-8')), thumbwidth, urllib.quote(image_title_.encode('utf-8')))
+        thumburl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/%s/%s/%s/%spx-%s' % (md5[0], md5[:2], urllib.quote(image_title_.encode('utf-8')), thumb_width, urllib.quote(image_title_.encode('utf-8')))
         thumbfilename = '%s/thumb' % (os.path.dirname(os.path.realpath(__file__)))
         if image_title.endswith('.svg'):
             thumburl += '.png'
