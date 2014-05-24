@@ -58,8 +58,8 @@ def main():
     description = re.findall(ur'(?im)\{\{\s*Potd[ _]description\s*\|\s*1\s*=\s*([^\n]+?)\|\s*2\s*=\s*en', raw2)[0].strip()
     description = re.sub(ur'(?im)\[\[[^\|\]]*\|([^\]]*?)\]\]', ur'\1', description)
     description = re.sub(ur'(?im)\[\[([^\]]*?)\]\]', ur'\1', description)
-    if len(description) > 60:
-        description = '%s...' % (description[:60])
+    if len(description) > 70:
+        description = '%s...' % (description[:70])
     
     md5 = hashlib.md5(imagename_.encode('utf-8')).hexdigest()
     thumburl='https://upload.wikimedia.org/wikipedia/commons/thumb/%s/%s/%s/800px-%s' % (md5[0], md5[:2], urllib.quote(imagename_.encode('utf-8')), urllib.quote(imagename_.encode('utf-8')))

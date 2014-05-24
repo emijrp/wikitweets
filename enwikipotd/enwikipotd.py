@@ -53,8 +53,8 @@ def main():
     imagename = re.findall(ur'(?im)\|\s*image\s*=\s*([^\n\|]+?)[\n\|]', raw)[0].strip()
     imagename_ = re.sub(ur' ', ur'_', imagename)
     texttitle = re.findall(ur'(?im)\|\s*texttitle\s*=\s*([^\n\|]+?)[\n\|]', raw)[0].strip()
-    if len(texttitle) > 60:
-        texttitle = '%s...' % (texttitle[:60])
+    if len(texttitle) > 70:
+        texttitle = '%s...' % (texttitle[:70])
     md5 = hashlib.md5(imagename_.encode('utf-8')).hexdigest()
     thumburl='https://upload.wikimedia.org/wikipedia/commons/thumb/%s/%s/%s/800px-%s' % (md5[0], md5[:2], urllib.quote(imagename_.encode('utf-8')), urllib.quote(imagename_.encode('utf-8')))
     thumbfilename = '%s/thumb' % (os.path.dirname(os.path.realpath(__file__)))
