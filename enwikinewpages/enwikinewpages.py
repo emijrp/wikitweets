@@ -82,21 +82,28 @@ def main():
     lastXhours = 3
     rcend = (datetime.datetime.now() - datetime.timedelta(hours=lastXhours)).strftime('%Y%m%d%H%M%S')
     print rcend
-    urlnewpages = 'http://en.wikipedia.org/w/api.php?action=query&list=recentchanges&rctype=new&rcnamespace=0&rcshow=!redirect|!anon&rcprop=title|user|timestamp|sizes&rcend=%s&rclimit=500&format=json' % (rcend)
+    urlnewpages = 'http://en.wikipedia.org/w/api.php?action=query&list=recentchanges&rctype=new&rcnamespace=0&rcshow=!redirect|!anon&rcprop=title|user|timestamp&rcend=%s&rclimit=500&format=json' % (rcend)
     jsonnewpages = json.loads(unicode(urllib.urlopen(urlnewpages).read(), 'utf-8'))
     print len(jsonnewpages['query']['recentchanges'])
     newpages_candidates = []
     minlength = 2000
     minuserexperience = 500 # in number of edits
     for page in jsonnewpages['query']['recentchanges']:
-        #exclude newbies, tiny pages, etc
-        if page['newlen'] < minlength or getUserEditCount(page['user']) < minuserexperience:
+        #exclude newbies creations
+        if getUserEditCount(page['user']) < minuserexperience:
             continue
         
+        #get page text
         page_title_ = re.sub(ur' ', ur'_', page['title'])
         page_url = 'https://en.wikipedia.org/w/index.php?title=%s&action=raw' % (page_title_.encode('utf-8'))
         page_text = unicode(urllib.urlopen(page_url).read(), 'utf-8')
-        if not page_text or len(page_text) < minlength:
+        page_len = len(page_text)
+        if not page_text:
+            continue
+        breaking = False
+        if re.search(ur"(?im)\{\{\s*(current\s*(disaster|election|events?|news|person|related|spaceflight|sport|sport-related|tornado[ _]outbreak|tropical[ _]cyclone|war|warfare)?|ongoing\s*(election|event)|recent\s*(death|event)|recentevent)\s*[\|\}]", page_text):
+            breaking = True
+        elif page_len < minlength:
             continue
         
         #exclude pages with issues
@@ -131,12 +138,12 @@ def main():
         thumb_width = 800 #prefered size
         if image_size['width'] <= thumb_width: #but if image is smaller, we change it
             thumb_width = image_size['width'] - 1
-        newpages_candidates.append([page['title'], len(page_text), image_candidate, thumb_width])
+        newpages_candidates.append([page['title'], page_len, image_candidate, thumb_width, breaking])
     
     print newpages_candidates
     c = 0
     maxtweets = 3
-    for page_title, page_size, image_title, thumb_width in newpages_candidates:
+    for page_title, page_size, image_title, thumb_width, breaking in newpages_candidates:
         if c >= maxtweets:
             break
         if page_title in tweetedbefore:
@@ -144,8 +151,8 @@ def main():
             continue
         page_title_ = re.sub(ur' ', ur'_', page_title)
         image_title_ = re.sub(ur' ', ur'_', image_title)
-        if len(page_title) > 50:
-            page_title = '%s...' % (page_title[:50])
+        if len(page_title) > 60:
+            page_title = '%s...' % (page_title[:60])
         md5 = hashlib.md5(image_title_.encode('utf-8')).hexdigest()
         thumburl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/%s/%s/%s/%spx-%s' % (md5[0], md5[:2], urllib.quote(image_title_.encode('utf-8')), thumb_width, urllib.quote(image_title_.encode('utf-8')))
         thumbfilename = '%s/thumb' % (os.path.dirname(os.path.realpath(__file__)))
@@ -161,7 +168,7 @@ def main():
         print u'Tweeting [[%s]]' % (page_title)
         thumb = open(thumbfilename, 'rb')
         url = 'https://en.wikipedia.org/wiki/%s' % (page_title_)
-        twitter.update_status_with_media(status='%s %s (%s bytes) #wikipedia #newpages' % (page_title, url, page_size), media=thumb)
+        twitter.update_status_with_media(status='%s%s %s (%s bytes)' % (breaking and 'BREAKING: ' or '', page_title, url, page_size), media=thumb)
         g = open('%s/enwikinewpages.tweeted' % (os.path.dirname(os.path.realpath(__file__))), 'a')
         output = u'%s\n' % (page_title)
         g.write(output.encode('utf-8'))
