@@ -79,7 +79,7 @@ def main():
     f.close()
     
     #get new pages
-    lastXhours = 1
+    lastXhours = 3
     rcend = (datetime.datetime.now() - datetime.timedelta(hours=lastXhours)).strftime('%Y%m%d%H%M%S')
     print rcend
     urlnewpages = 'http://en.wikipedia.org/w/api.php?action=query&list=recentchanges&rctype=new&rcnamespace=0&rcshow=!redirect|!anon&rcprop=title|user|timestamp|sizes&rcend=%s&rclimit=500&format=json' % (rcend)
@@ -119,6 +119,7 @@ def main():
         image_candidate = ''
         for image in images:
             #print image
+            image = u'%s%s' % (image[0].upper(), image[1:])
             image = re.sub(ur'_', ur' ', image)
             if imageIsOnCommons(image):
                 image_candidate = image
