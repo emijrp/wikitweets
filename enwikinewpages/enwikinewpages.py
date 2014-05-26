@@ -79,7 +79,7 @@ def main():
     f.close()
     
     #get new pages
-    lastXhours = 3
+    lastXhours = 1
     rcend = (datetime.datetime.now() - datetime.timedelta(hours=lastXhours)).strftime('%Y%m%d%H%M%S')
     print rcend
     urlnewpages = 'http://en.wikipedia.org/w/api.php?action=query&list=recentchanges&rctype=new&rcnamespace=0&rcshow=!redirect|!anon&rcprop=title|user|timestamp&rcend=%s&rclimit=500&format=json' % (rcend)
@@ -150,9 +150,10 @@ def main():
             print u'[[%s]] was tweeted before' % (page_title)
             continue
         page_title_ = re.sub(ur' ', ur'_', page_title)
+        page_title2 = page_title
         image_title_ = re.sub(ur' ', ur'_', image_title)
-        if len(page_title) > 60:
-            page_title = '%s...' % (page_title[:60])
+        if len(page_title2) > 60:
+            page_title2 = '%s...' % (page_title2[:60])
         md5 = hashlib.md5(image_title_.encode('utf-8')).hexdigest()
         thumburl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/%s/%s/%s/%spx-%s' % (md5[0], md5[:2], urllib.quote(image_title_.encode('utf-8')), thumb_width, urllib.quote(image_title_.encode('utf-8')))
         thumbfilename = '%s/thumb' % (os.path.dirname(os.path.realpath(__file__)))
@@ -165,10 +166,10 @@ def main():
             thumbfilename += '.jpg'
         urllib.urlretrieve(thumburl, thumbfilename)
         
-        print u'Tweeting [[%s]]' % (page_title)
+        print u'Tweeting [[%s]]' % (page_title2)
         thumb = open(thumbfilename, 'rb')
         url = 'https://en.wikipedia.org/wiki/%s' % (page_title_)
-        twitter.update_status_with_media(status='%s%s %s (%s bytes)' % (breaking and 'BREAKING: ' or '', page_title, url, page_size), media=thumb)
+        twitter.update_status_with_media(status='%s%s %s (%s bytes)' % (breaking and 'BREAKING: ' or '', page_title2, url, page_size), media=thumb)
         g = open('%s/enwikinewpages.tweeted' % (os.path.dirname(os.path.realpath(__file__))), 'a')
         output = u'%s\n' % (page_title)
         g.write(output.encode('utf-8'))
