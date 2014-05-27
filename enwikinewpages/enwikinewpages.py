@@ -79,7 +79,7 @@ def main():
     f.close()
     
     #get new pages
-    lastXhours = 1
+    lastXhours = 3
     rcend = (datetime.datetime.now() - datetime.timedelta(hours=lastXhours)).strftime('%Y%m%d%H%M%S')
     print rcend
     urlnewpages = 'http://en.wikipedia.org/w/api.php?action=query&list=recentchanges&rctype=new&rcnamespace=0&rcshow=!redirect|!anon&rcprop=title|user|timestamp&rcend=%s&rclimit=500&format=json' % (rcend)
@@ -103,6 +103,8 @@ def main():
         breaking = False
         if re.search(ur"(?im)\{\{\s*(current\s*(disaster|election|events?|news|person|related|spaceflight|sport|sport-related|tornado[ _]outbreak|tropical[ _]cyclone|war|warfare)?|ongoing\s*(election|event)|recent\s*(death|event)|recentevent)\s*[\|\}]", page_text):
             breaking = True
+            if page_len <= 500:
+                continue
         elif page_len < minlength:
             continue
         
@@ -111,33 +113,36 @@ def main():
             continue
         
         #we prefer articles with references
-        if not re.search(ur"(?im)(<ref>|<ref name=)", page_text):
+        if not breaking and not re.search(ur"(?im)(<ref>|<ref name=)", page_text):
             continue
         
         #we prefer articles with categories
-        if not re.search(ur"(?im)\[\[\s*Category\s*:", page_text):
+        if not breaking and not re.search(ur"(?im)\[\[\s*Category\s*:", page_text):
             continue
         
         #print page_title_
         #we prefer articles with images, and on Commons (they are free)
         images = re.findall(ur"(?im)(?:\|\s*image\s*\=|\[\[\s*(?:File|Image)\s*\:)\s*([^\n\[\]\|\=]+?\.(?:jpe?g|png|svg))", page_text)
-        if not images:
+        if not breaking and not images:
             continue
         image_candidate = ''
-        for image in images:
-            #print image
-            image = u'%s%s' % (image[0].upper(), image[1:])
-            image = re.sub(ur'_', ur' ', image)
-            if imageIsOnCommons(image):
-                image_candidate = image
-                break
-        if not image_candidate:
+        if images:
+            for image in images:
+                #print image
+                image = u'%s%s' % (image[0].upper(), image[1:])
+                image = re.sub(ur'_', ur' ', image)
+                if imageIsOnCommons(image):
+                    image_candidate = image
+                    break
+        if not breaking and not image_candidate:
             continue
         
-        image_size = getImageSize(image_candidate)
-        thumb_width = 800 #prefered size
-        if image_size['width'] <= thumb_width: #but if image is smaller, we change it
-            thumb_width = image_size['width'] - 1
+        thumb_width = 0
+        if image_candidate:
+            image_size = getImageSize(image_candidate)
+            thumb_width = 800 #prefered size
+            if image_size['width'] <= thumb_width: #but if image is smaller, we change it
+                thumb_width = image_size['width'] - 1
         newpages_candidates.append([page['title'], page_len, image_candidate, thumb_width, breaking])
     
     print newpages_candidates
@@ -147,29 +152,36 @@ def main():
         if c >= maxtweets:
             break
         if page_title in tweetedbefore:
-            print u'[[%s]] was tweeted before' % (page_title)
+            print '[[%s]] was tweeted before' % (page_title)
             continue
         page_title_ = re.sub(ur' ', ur'_', page_title)
         page_title2 = page_title
-        image_title_ = re.sub(ur' ', ur'_', image_title)
-        if len(page_title2) > 60:
-            page_title2 = '%s...' % (page_title2[:60])
-        md5 = hashlib.md5(image_title_.encode('utf-8')).hexdigest()
-        thumburl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/%s/%s/%s/%spx-%s' % (md5[0], md5[:2], urllib.quote(image_title_.encode('utf-8')), thumb_width, urllib.quote(image_title_.encode('utf-8')))
-        thumbfilename = '%s/thumb' % (os.path.dirname(os.path.realpath(__file__)))
-        if image_title.endswith('.svg'):
-            thumburl += '.png'
-            thumbfilename += '.png'
-        elif image_title.endswith('.png'):
-            thumbfilename += '.png'
-        else:
-            thumbfilename += '.jpg'
-        urllib.urlretrieve(thumburl, thumbfilename)
         
-        print u'Tweeting [[%s]]' % (page_title2)
-        thumb = open(thumbfilename, 'rb')
+        thumb = ''
+        if image_title:
+            image_title_ = re.sub(ur' ', ur'_', image_title)
+            if len(page_title2) > 60:
+                page_title2 = '%s...' % (page_title2[:60])
+            md5 = hashlib.md5(image_title_.encode('utf-8')).hexdigest()
+            thumburl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/%s/%s/%s/%spx-%s' % (md5[0], md5[:2], urllib.quote(image_title_.encode('utf-8')), thumb_width, urllib.quote(image_title_.encode('utf-8')))
+            thumbfilename = '%s/thumb' % (os.path.dirname(os.path.realpath(__file__)))
+            if image_title.endswith('.svg'):
+                thumburl += '.png'
+                thumbfilename += '.png'
+            elif image_title.endswith('.png'):
+                thumbfilename += '.png'
+            else:
+                thumbfilename += '.jpg'
+            urllib.urlretrieve(thumburl, thumbfilename)
+            thumb = open(thumbfilename, 'rb')
+        
         url = 'https://en.wikipedia.org/wiki/%s' % (page_title_)
-        twitter.update_status_with_media(status='%s%s %s (%s bytes)' % (breaking and 'BREAKING: ' or '', page_title2, url, page_size), media=thumb)
+        print 'Tweeting [[%s]]' % (page_title2)
+        if thumb:
+            twitter.update_status_with_media(status='%s%s %s (%s bytes)' % (breaking and 'BREAKING: ' or '', page_title2, url, page_size), media=thumb)
+        else:
+            twitter.update_status_with_media(status='%s%s %s (%s bytes)' % (breaking and 'BREAKING: ' or '', page_title2, url, page_size))
+        
         g = open('%s/enwikinewpages.tweeted' % (os.path.dirname(os.path.realpath(__file__))), 'a')
         output = u'%s\n' % (page_title)
         g.write(output.encode('utf-8'))
