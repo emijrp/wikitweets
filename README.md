@@ -2,6 +2,7 @@
 
 Twitter bots about Wikipedia, Wikimedia Commons and other wikis.
 
+See a list of wikitweets bots working here http://tools.wmflabs.org/wikitweets/
 
 ## How to register a Twitter bot account?
 
