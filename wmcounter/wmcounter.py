@@ -46,17 +46,22 @@ def main():
     gap = 1000000
     f = urllib.urlopen('http://tools.wmflabs.org/wmcounter/wmcounter.data.js')
     raw = f.read()
-    if re.search(ur"(?im)var editinit = (\d+)\.0;", raw):
-        current_count = int(re.findall(ur"(?im)var editinit = (\d+)\.0;", raw)[0].strip())
+    if re.search(ur"(?im)var editinit = (\d+)", raw):
+        current_count = int(re.findall(ur"(?im)var editinit = (\d+)", raw)[0].strip())
         f = open('%s/wmcounter.log' % (os.path.dirname(os.path.realpath(__file__))), 'r')
-        previous_count = int(f.read())
+        previous_count = int(f.read().strip())
         f.close()
         if current_count and previous_count and previous_count > 2000000000 and current_count >= previous_count + gap:
             current_count_round = current_count - (current_count % gap)
-            twitter.update_status(status='%s edits - Watch it live! http://tools.wmflabs.org/wmcounter/ #wikipedia' % (current_count_round))
+            try:
+                twitter.update_status(status='%s edits - Watch it live! http://tools.wmflabs.org/wmcounter/ #wikipedia' % ('{:,}'.format(current_count_round)))
+            except:
+                print 'Error sending tweet'
             g = open('%s/wmcounter.log' % (os.path.dirname(os.path.realpath(__file__))), 'w')
-            g.write(current_count_round)
+            g.write(str(current_count_round))
             g.close()
+        else:
+            print '%s: Update not needed yet' % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
 if __name__ == '__main__':
     main()
