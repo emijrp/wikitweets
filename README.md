@@ -4,6 +4,11 @@ Twitter bots about Wikipedia, Wikimedia Commons and other wikis.
 
 See a list of wikitweets bots working here http://tools.wmflabs.org/wikitweets/
 
+Ideas for future bots:
+* enwikiTFA (pic+intro)
+* villagepump titles
+* sister projects (word of the day, book, etc)
+
 ## How to register a Twitter bot account?
 
 Follow these steps:
