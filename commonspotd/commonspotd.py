@@ -58,6 +58,9 @@ def main():
     description = re.findall(ur'(?im)\{\{\s*Potd[ _]description\s*\|\s*1\s*=\s*([^\n]+?)\|\s*2\s*=\s*en', raw2)[0].strip()
     description = re.sub(ur'(?im)\[\[[^\|\]]*\|([^\]]*?)\]\]', ur'\1', description)
     description = re.sub(ur'(?im)\[\[([^\]]*?)\]\]', ur'\1', description)
+    description = re.sub(ur'(?im)\{\{w\|[^\|\}]*?\|([^\|\}]*?)\|[^\|\}]*?\}\}', ur'\1', description)
+    description = re.sub(ur'(?im)\{\{w\|[^\|\}]*?\|([^\|\}]*?)\}\}', ur'\1', description)
+    description = re.sub(ur'(?im)\{\{w\|([^\}]*?)\}\}', ur'\1', description)
     if len(description) > 70:
         description = '%s...' % (description[:70])
     
@@ -72,8 +75,10 @@ def main():
     urllib.urlretrieve(thumburl, thumbfilename)
 
     thumb = open(thumbfilename, 'rb')
-    url = 'https://commons.wikimedia.org/wiki/File:%s' % (imagename_)
-    twitter.update_status_with_media(status='%s %s #commons #potd' % (description, url), media=thumb)
+    url = 'https://commons.wikimedia.org/wiki/File:%s' % (urllib.quote(imagename_.encode('utf-8'))) # quoting to avoid breaking the link
+    status = '%s %s #commons #potd' % (description, url)
+    print status
+    twitter.update_status_with_media(status=status, media=thumb)
 
 if __name__ == '__main__':
     main()
