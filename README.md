@@ -2,7 +2,7 @@
 
 Twitter bots about Wikipedia, Wikimedia Commons and other wikis.
 
-See a list of wikitweets bots working here http://tools.wmflabs.org/wikitweets/
+See a list of wikitweets bots working here https://tools.wmflabs.org/wikitweets/
 
 Ideas for future bots:
 * enwikiTFA (pic+intro)
@@ -20,3 +20,19 @@ Follow these steps:
 6. Two tokens will saved in a file named .twitter_tokens.
 
 Now you can run your Twitter bot. The bot will need both .twitter_keys and .twitter_tokens files. If you want more than one Twitter bot, you will need to repeat these steps and generates other keys and tokens. Remember to protect these files to avoid others read them (chmod go-rwx .twitter_*).
+
+## How to create virtualenv for wkitweets?
+
+Follow these steps:
+
+1. virtualenv -p python2.7 tweetsenv
+2. cd tweetsenv;source bin/activate
+3. pip install twython
+4. deactivate
+
+## How to launch bot periodically?
+
+Add a task to cron:
+
+1. crontab -e
+2. 0 13  * * *   bash commonspotd/commonspotd.sh
