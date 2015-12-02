@@ -40,25 +40,34 @@ def read_tokens():
     return OAUTH_TOKEN, OAUTH_TOKEN_SECRET
 
 def getUserEditCount(username=''):
-    urleditcount = 'http://en.wikipedia.org/w/api.php?action=query&list=users&ususers=%s&usprop=groups|editcount|gender&format=json' % (username.encode('utf-8'))
-    jsoneditcount = json.loads(unicode(urllib.urlopen(urleditcount).read(), 'utf-8'))
+    urleditcount = 'https://en.wikipedia.org/w/api.php?action=query&list=users&ususers=%s&usprop=groups|editcount|gender&format=json' % (username.encode('utf-8'))
+    response = urllib.request.urlopen(urleditcount)
+    raw = response.readall().decode('utf-8')
+    jsoneditcount = json.loads(raw)
+    print(jsoneditcount)
     return jsoneditcount['query']['users'][0]['editcount']
 
 def getUserGroups(username=''):
-    urleditcount = 'http://en.wikipedia.org/w/api.php?action=query&list=users&ususers=%s&usprop=groups|editcount|gender&format=json' % (username.encode('utf-8'))
-    jsoneditcount = json.loads(unicode(urllib.urlopen(urleditcount).read(), 'utf-8'))
+    urleditcount = 'https://en.wikipedia.org/w/api.php?action=query&list=users&ususers=%s&usprop=groups|editcount|gender&format=json' % (username.encode('utf-8'))
+    response = urllib.request.urlopen(urleditcount)
+    raw = response.readall().decode('utf-8')
+    jsoneditcount = json.loads(raw)
     return jsoneditcount['query']['users'][0]['groups']
 
 def imageIsOnCommons(image=''):
     image_ = re.sub(r' ', r'_', image)
-    urlimage = 'http://en.wikipedia.org/w/api.php?action=query&titles=File:%s&prop=imageinfo&format=json' % (image_.encode('utf-8'))
-    jsonimage = json.loads(unicode(urllib.urlopen(urlimage).read(), 'utf-8'))
+    urlimage = 'https://en.wikipedia.org/w/api.php?action=query&titles=File:%s&prop=imageinfo&format=json' % (image_.encode('utf-8'))
+    response = urllib.request.urlopen(urlimage)
+    raw = response.readall().decode('utf-8')
+    jsonimage = json.loads(raw)
     return jsonimage['query']['pages'][jsonimage['query']['pages'].keys()[0]]['imagerepository'] == 'shared' and True or False
 
 def getImageSize(image=''):
     image_ = re.sub(r' ', r'_', image)
-    urlimage = 'http://en.wikipedia.org/w/api.php?action=query&titles=File:%s&prop=imageinfo&iiprop=size&format=json' % (image_.encode('utf-8'))
-    jsonimage = json.loads(unicode(urllib.urlopen(urlimage).read(), 'utf-8'))
+    urlimage = 'https://en.wikipedia.org/w/api.php?action=query&titles=File:%s&prop=imageinfo&iiprop=size&format=json' % (image_.encode('utf-8'))
+    response = urllib.request.urlopen(urlimage)
+    raw = response.readall().decode('utf-8')
+    jsonimage = json.loads(raw)
     return jsonimage['query']['pages'][jsonimage['query']['pages'].keys()[0]]['imageinfo'][0]
 
 def main():
@@ -74,17 +83,21 @@ def main():
     
     #load tweeted pages
     f = open('%s/enwikinewpages.tweeted' % (os.path.dirname(os.path.realpath(__file__))), 'r')
-    tweetedbefore = unicode(f.read(), 'utf-8').splitlines()
+    tweetedbefore = f.read().splitlines()
     #print tweetedbefore
     f.close()
     
     #get new pages
     lastXhours = 3
     rcend = (datetime.datetime.now() - datetime.timedelta(hours=lastXhours)).strftime('%Y%m%d%H%M%S')
-    print rcend
-    urlnewpages = 'http://en.wikipedia.org/w/api.php?action=query&list=recentchanges&rctype=new&rcnamespace=0&rcshow=!redirect|!anon&rcprop=title|user|timestamp&rcend=%s&rclimit=500&format=json' % (rcend)
-    jsonnewpages = json.loads(unicode(urllib.urlopen(urlnewpages).read(), 'utf-8'))
-    print len(jsonnewpages['query']['recentchanges'])
+    print(rcend)
+    urlnewpages = 'https://en.wikipedia.org/w/api.php?action=query&list=recentchanges&rctype=new&rcnamespace=0&rcshow=!redirect|!anon&rcprop=title|user|timestamp&rcend=%s&rclimit=500&format=json' % (rcend)
+    #print(urlnewpages)
+    response = urllib.request.urlopen(urlnewpages)
+    raw = response.readall().decode('utf-8')
+    #print(raw)
+    jsonnewpages = json.loads(raw)
+    print(len(jsonnewpages['query']['recentchanges']))
     newpages_candidates = []
     minlength = 2000
     minuserexperience = 500 # in number of edits
@@ -96,12 +109,12 @@ def main():
         #get page text
         page_title_ = re.sub(r' ', r'_', page['title'])
         page_url = 'https://en.wikipedia.org/w/index.php?title=%s&action=raw' % (page_title_.encode('utf-8'))
-        page_text = unicode(urllib.urlopen(page_url).read(), 'utf-8')
+        page_text = urllib.request.urlopen(page_url).read()
         page_len = len(page_text)
         if not page_text:
             continue
         breaking = False
-        if re.search(ur"(?im)\{\{\s*(current\s*(disaster|election|events?|news|person|related|spaceflight|sport|sport-related|tornado[ _]outbreak|tropical[ _]cyclone|war|warfare)?|ongoing\s*(election|event)|recent\s*(death|event)|recentevent)\s*[\|\}]", page_text):
+        if re.search(r"(?im)\{\{\s*(current\s*(disaster|election|events?|news|person|related|spaceflight|sport|sport-related|tornado[ _]outbreak|tropical[ _]cyclone|war|warfare)?|ongoing\s*(election|event)|recent\s*(death|event)|recentevent)\s*[\|\}]", page_text):
             breaking = True
             if page_len <= 500:
                 continue
@@ -109,20 +122,20 @@ def main():
             continue
         
         #exclude pages with issues
-        if re.search(ur"(?im)\{\{\s*(Unreviewed|NPOV|db|prod|proposed)", page_text):
+        if re.search(r"(?im)\{\{\s*(Unreviewed|NPOV|db|prod|proposed)", page_text):
             continue
         
         #we prefer articles with references
-        if not breaking and not re.search(ur"(?im)(<ref>|<ref name=)", page_text):
+        if not breaking and not re.search(r"(?im)(<ref>|<ref name=)", page_text):
             continue
         
         #we prefer articles with categories
-        if not breaking and not re.search(ur"(?im)\[\[\s*Category\s*:", page_text):
+        if not breaking and not re.search(r"(?im)\[\[\s*Category\s*:", page_text):
             continue
         
         #print page_title_
         #we prefer articles with images, and on Commons (they are free)
-        images = re.findall(ur"(?im)(?:\|\s*image\s*\=|\[\[\s*(?:File|Image)\s*\:)\s*([^\n\[\]\|\=]+?\.(?:jpe?g|png|svg))", page_text)
+        images = re.findall(r"(?im)(?:\|\s*image\s*\=|\[\[\s*(?:File|Image)\s*\:)\s*([^\n\[\]\|\=]+?\.(?:jpe?g|png|svg))", page_text)
         if not breaking and not images:
             continue
         image_candidate = ''
@@ -145,14 +158,14 @@ def main():
                 thumb_width = image_size['width'] - 1
         newpages_candidates.append([page['title'], page_len, image_candidate, thumb_width, breaking])
     
-    print newpages_candidates
+    print(newpages_candidates)
     c = 0
     maxtweets = 3
     for page_title, page_size, image_title, thumb_width, breaking in newpages_candidates:
         if c >= maxtweets:
             break
         if page_title in tweetedbefore:
-            print '[[%s]] was tweeted before' % (page_title)
+            print(page_title,'was tweeted before')
             continue
         page_title_ = re.sub(r' ', r'_', page_title)
         page_title2 = page_title
@@ -176,7 +189,7 @@ def main():
             thumb = open(thumbfilename, 'rb')
         
         url = 'https://en.wikipedia.org/wiki/%s' % (page_title_)
-        print 'Tweeting [[%s]]' % (page_title2)
+        print('Tweeting',page_title2)
         if thumb:
             status = '%s%s %s (%s bytes)' % (breaking and 'BREAKING: ' or '', page_title2, url, page_size)
             response = twitter.upload_media(media=thumb)
