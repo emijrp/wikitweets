@@ -22,8 +22,8 @@ def read_keys():
     f = open('.twitter_keys', 'r')
     w = f.read()
     f.close()
-    APP_KEY = re.findall(ur'(?im)^APP_KEY\s*=\s*([^\n]+?)\s*$', w)[0].strip()
-    APP_SECRET = re.findall(ur'(?im)^APP_SECRET\s*=\s*([^\n]+?)\s*$', w)[0].strip()
+    APP_KEY = re.findall(r'(?im)^AP[IP]_KEY\s*=\s*([^\n]+?)\s*$', w)[0].strip()
+    APP_SECRET = re.findall(r'(?im)^AP[IP]_SECRET\s*=\s*([^\n]+?)\s*$', w)[0].strip()
     return APP_KEY, APP_SECRET
 
 def write_tokens(final_step):
@@ -42,9 +42,9 @@ def main():
     OAUTH_TOKEN = auth['oauth_token']
     OAUTH_TOKEN_SECRET = auth['oauth_token_secret']
 
-    print auth['auth_url']
+    print(auth['auth_url'])
 
-    pin = raw_input("Open the URL and insert code here: ")
+    pin = input("Open the URL and insert code here: ")
     twitter = Twython(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
     final_step = twitter.get_authorized_tokens(pin)
     
