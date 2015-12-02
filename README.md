@@ -21,7 +21,7 @@ Follow these steps:
 
 Now you can run your Twitter bot. The bot will need both .twitter_keys and .twitter_tokens files. If you want more than one Twitter bot, you will need to repeat these steps and generates other keys and tokens. Remember to protect these files to avoid others read them (chmod go-rwx .twitter_*).
 
-## How to create virtualenv for wkitweets?
+## How to create virtualenv for wikitweets?
 
 Follow these steps:
 
