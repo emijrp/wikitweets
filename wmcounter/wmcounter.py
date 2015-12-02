@@ -44,10 +44,10 @@ def main():
     twitter = Twython(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
     
     gap = 1000000
-    f = urllib.urlopen('http://tools.wmflabs.org/wmcounter/wmcounter.data.js')
-    raw = f.read()
-    if re.search(ur"(?im)var editinit = (\d+)", raw):
-        current_count = int(re.findall(ur"(?im)var editinit = (\d+)", raw)[0].strip())
+    response = urllib.request.urlopen('https://tools.wmflabs.org/wmcounter/wmcounter.data.js')
+    raw = response.readall().decode('utf-8')
+    if re.search(r"(?im)var editinit = (\d+)", raw):
+        current_count = int(re.findall(r"(?im)var editinit = (\d+)", raw)[0].strip())
         f = open('%s/wmcounter.log' % (os.path.dirname(os.path.realpath(__file__))), 'r')
         previous_count = int(f.read().strip())
         f.close()
@@ -59,7 +59,7 @@ def main():
             g.write(str(current_count_round))
             g.close()
         else:
-            print '%s: Update not needed yet' % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            print('Update not needed yet',datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
 if __name__ == '__main__':
     main()
