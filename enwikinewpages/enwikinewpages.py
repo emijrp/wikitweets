@@ -28,15 +28,15 @@ from twython import Twython
 def read_keys():
     f = open('%s/.twitter_keys' % (os.path.dirname(os.path.realpath(__file__))), 'r')
     w = f.read()
-    APP_KEY = re.findall(ur'(?im)^APP_KEY\s*=\s*([^\n]+?)\s*$', w)[0].strip()
-    APP_SECRET = re.findall(ur'(?im)^APP_SECRET\s*=\s*([^\n]+?)\s*$', w)[0].strip()
+    APP_KEY = re.findall(r'(?im)^APP_KEY\s*=\s*([^\n]+?)\s*$', w)[0].strip()
+    APP_SECRET = re.findall(r'(?im)^APP_SECRET\s*=\s*([^\n]+?)\s*$', w)[0].strip()
     return APP_KEY, APP_SECRET
 
 def read_tokens():
     f = open('%s/.twitter_tokens' % (os.path.dirname(os.path.realpath(__file__))), 'r')
     w = f.read()
-    OAUTH_TOKEN = re.findall(ur'(?im)^OAUTH_TOKEN\s*=\s*([^\n]+?)\s*$', w)[0].strip()
-    OAUTH_TOKEN_SECRET = re.findall(ur'(?im)^OAUTH_TOKEN_SECRET\s*=\s*([^\n]+?)\s*$', w)[0].strip()
+    OAUTH_TOKEN = re.findall(r'(?im)^OAUTH_TOKEN\s*=\s*([^\n]+?)\s*$', w)[0].strip()
+    OAUTH_TOKEN_SECRET = re.findall(r'(?im)^OAUTH_TOKEN_SECRET\s*=\s*([^\n]+?)\s*$', w)[0].strip()
     return OAUTH_TOKEN, OAUTH_TOKEN_SECRET
 
 def getUserEditCount(username=''):
@@ -50,13 +50,13 @@ def getUserGroups(username=''):
     return jsoneditcount['query']['users'][0]['groups']
 
 def imageIsOnCommons(image=''):
-    image_ = re.sub(ur' ', ur'_', image)
+    image_ = re.sub(r' ', r'_', image)
     urlimage = 'http://en.wikipedia.org/w/api.php?action=query&titles=File:%s&prop=imageinfo&format=json' % (image_.encode('utf-8'))
     jsonimage = json.loads(unicode(urllib.urlopen(urlimage).read(), 'utf-8'))
     return jsonimage['query']['pages'][jsonimage['query']['pages'].keys()[0]]['imagerepository'] == 'shared' and True or False
 
 def getImageSize(image=''):
-    image_ = re.sub(ur' ', ur'_', image)
+    image_ = re.sub(r' ', r'_', image)
     urlimage = 'http://en.wikipedia.org/w/api.php?action=query&titles=File:%s&prop=imageinfo&iiprop=size&format=json' % (image_.encode('utf-8'))
     jsonimage = json.loads(unicode(urllib.urlopen(urlimage).read(), 'utf-8'))
     return jsonimage['query']['pages'][jsonimage['query']['pages'].keys()[0]]['imageinfo'][0]
@@ -94,7 +94,7 @@ def main():
             continue
         
         #get page text
-        page_title_ = re.sub(ur' ', ur'_', page['title'])
+        page_title_ = re.sub(r' ', r'_', page['title'])
         page_url = 'https://en.wikipedia.org/w/index.php?title=%s&action=raw' % (page_title_.encode('utf-8'))
         page_text = unicode(urllib.urlopen(page_url).read(), 'utf-8')
         page_len = len(page_text)
@@ -129,8 +129,8 @@ def main():
         if images:
             for image in images:
                 #print image
-                image = u'%s%s' % (image[0].upper(), image[1:])
-                image = re.sub(ur'_', ur' ', image)
+                image = '%s%s' % (image[0].upper(), image[1:])
+                image = re.sub(r'_', r' ', image)
                 if imageIsOnCommons(image):
                     image_candidate = image
                     break
@@ -154,12 +154,12 @@ def main():
         if page_title in tweetedbefore:
             print '[[%s]] was tweeted before' % (page_title)
             continue
-        page_title_ = re.sub(ur' ', ur'_', page_title)
+        page_title_ = re.sub(r' ', r'_', page_title)
         page_title2 = page_title
         
         thumb = ''
         if image_title:
-            image_title_ = re.sub(ur' ', ur'_', image_title)
+            image_title_ = re.sub(r' ', r'_', image_title)
             if len(page_title2) > 60:
                 page_title2 = '%s...' % (page_title2[:60])
             md5 = hashlib.md5(image_title_.encode('utf-8')).hexdigest()
@@ -178,12 +178,15 @@ def main():
         url = 'https://en.wikipedia.org/wiki/%s' % (page_title_)
         print 'Tweeting [[%s]]' % (page_title2)
         if thumb:
-            twitter.update_status_with_media(status='%s%s %s (%s bytes)' % (breaking and 'BREAKING: ' or '', page_title2, url, page_size), media=thumb)
+            status = '%s%s %s (%s bytes)' % (breaking and 'BREAKING: ' or '', page_title2, url, page_size)
+            response = twitter.upload_media(media=thumb)
+            twitter.update_status(status=status, media_ids=[response['media_id']])
         else:
-            twitter.update_status_with_media(status='%s%s %s (%s bytes)' % (breaking and 'BREAKING: ' or '', page_title2, url, page_size))
+            status = '%s%s %s (%s bytes)' % (breaking and 'BREAKING: ' or '', page_title2, url, page_size)
+            twitter.update_status(status=status)
         
         g = open('%s/enwikinewpages.tweeted' % (os.path.dirname(os.path.realpath(__file__))), 'a')
-        output = u'%s\n' % (page_title)
+        output = '%s\n' % (page_title)
         g.write(output.encode('utf-8'))
         g.close()
         time.sleep(20)

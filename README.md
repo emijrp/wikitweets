@@ -25,7 +25,7 @@ Now you can run your Twitter bot. The bot will need both .twitter_keys and .twit
 
 Follow these steps:
 
-1. virtualenv -p python2.7 tweetsenv
+1. virtualenv -p python3 tweetsenv
 2. cd tweetsenv;source bin/activate
 3. pip install twython
 4. deactivate

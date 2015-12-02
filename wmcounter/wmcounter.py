@@ -26,15 +26,15 @@ from twython import Twython
 def read_keys():
     f = open('%s/.twitter_keys' % (os.path.dirname(os.path.realpath(__file__))), 'r')
     w = f.read()
-    APP_KEY = re.findall(ur'(?im)^APP_KEY\s*=\s*([^\n]+?)\s*$', w)[0].strip()
-    APP_SECRET = re.findall(ur'(?im)^APP_SECRET\s*=\s*([^\n]+?)\s*$', w)[0].strip()
+    APP_KEY = re.findall(r'(?im)^APP_KEY\s*=\s*([^\n]+?)\s*$', w)[0].strip()
+    APP_SECRET = re.findall(r'(?im)^APP_SECRET\s*=\s*([^\n]+?)\s*$', w)[0].strip()
     return APP_KEY, APP_SECRET
 
 def read_tokens():
     f = open('%s/.twitter_tokens' % (os.path.dirname(os.path.realpath(__file__))), 'r')
     w = f.read()
-    OAUTH_TOKEN = re.findall(ur'(?im)^OAUTH_TOKEN\s*=\s*([^\n]+?)\s*$', w)[0].strip()
-    OAUTH_TOKEN_SECRET = re.findall(ur'(?im)^OAUTH_TOKEN_SECRET\s*=\s*([^\n]+?)\s*$', w)[0].strip()
+    OAUTH_TOKEN = re.findall(r'(?im)^OAUTH_TOKEN\s*=\s*([^\n]+?)\s*$', w)[0].strip()
+    OAUTH_TOKEN_SECRET = re.findall(r'(?im)^OAUTH_TOKEN_SECRET\s*=\s*([^\n]+?)\s*$', w)[0].strip()
     return OAUTH_TOKEN, OAUTH_TOKEN_SECRET
 
 def main():
@@ -53,10 +53,8 @@ def main():
         f.close()
         if current_count and previous_count and previous_count > 2000000000 and current_count >= previous_count + gap:
             current_count_round = current_count - (current_count % gap)
-            try:
-                twitter.update_status(status='%s edits - Watch it live! http://tools.wmflabs.org/wmcounter/ #wikipedia' % ('{:,}'.format(current_count_round)))
-            except:
-                print 'Error sending tweet'
+            status = '%s edits - Watch it live! https://tools.wmflabs.org/wmcounter/ #wikipedia' % ('{:,}'.format(current_count_round))
+            twitter.update_status(status=status)
             g = open('%s/wmcounter.log' % (os.path.dirname(os.path.realpath(__file__))), 'w')
             g.write(str(current_count_round))
             g.close()
