@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014 emijrp
+# Copyright (C) 2014-2017 emijrp
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -20,6 +20,7 @@ import hashlib
 import os
 import random
 import re
+import time
 import urllib
 from twython import Twython
 
@@ -51,10 +52,39 @@ def main():
         f = open('%s/wmcounter.log' % (os.path.dirname(os.path.realpath(__file__))), 'r')
         previous_count = int(f.read().strip())
         f.close()
-        if current_count and previous_count and previous_count > 2000000000 and current_count >= previous_count + gap:
+        if current_count and previous_count and previous_count > 3000000000 and current_count >= previous_count + gap:
             current_count_round = current_count - (current_count % gap)
-            status = '%s edits - Watch it live! https://tools.wmflabs.org/wmcounter/ #wikipedia' % ('{:,}'.format(current_count_round))
+            
+            number = '{:,}'.format(current_count_round)
+            hashtags = ['#wikipedia', '#wikimedia', '#wikidata', '#commons', '#wikisource', '#wiktionary', '#wikibooks', '#wikiversity', '#wikivoyage']
+            htl = 5
+            
+            #en
+            random.shuffle(hashtags)
+            status = '%s edits - Watch it live! https://tools.wmflabs.org/wmcounter/ %s' % (number, ' '.join(hashtags[:htl]))
             twitter.update_status(status=status)
+            time.sleep(10)
+            #es
+            random.shuffle(hashtags)
+            status = '%s ediciones - ¡Míralo en directo! https://tools.wmflabs.org/wmcounter/ %s' % (number.replace(',', '.'), ' '.join(hashtags[:htl]))
+            twitter.update_status(status=status)
+            time.sleep(10)
+            #fr
+            random.shuffle(hashtags)
+            status = '%s éditions - https://tools.wmflabs.org/wmcounter/ %s' % (number.replace(',', ' '), ' '.join(hashtags[:htl]))
+            twitter.update_status(status=status)
+            time.sleep(10)
+            #pt
+            random.shuffle(hashtags)
+            status = '%s edições - https://tools.wmflabs.org/wmcounter/ %s' % (number.replace(',', '.'), ' '.join(hashtags[:htl]))
+            twitter.update_status(status=status)
+            time.sleep(10)
+            #ru
+            random.shuffle(hashtags)
+            status = '%s правок - https://tools.wmflabs.org/wmcounter/ %s' % (number.replace(',', ' '), ' '.join(hashtags[:htl]))
+            twitter.update_status(status=status)
+            time.sleep(10)
+            
             g = open('%s/wmcounter.log' % (os.path.dirname(os.path.realpath(__file__))), 'w')
             g.write(str(current_count_round))
             g.close()
